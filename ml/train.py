@@ -6,6 +6,7 @@ import mlflow
 import mlflow.sklearn
 import mlflow.xgboost
 from mlflow import MlflowClient
+from pathlib import Path
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -24,6 +25,11 @@ warnings.filterwarnings("ignore")
 # ==========================================================
 # MLflow
 # ==========================================================
+
+# Configure MLflow SQLite tracking URI relative to this file's location
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+TRACKING_DB = PROJECT_ROOT / "ml" / "mlflow.db"
+mlflow.set_tracking_uri(f"sqlite:///{TRACKING_DB.as_posix()}")
 
 mlflow.set_experiment("RealGuard Fraud Detection")
 client = MlflowClient()
@@ -426,9 +432,15 @@ with mlflow.start_run(run_name="Best Model Summary") as run:
 
     model_uri = model_info.model_uri
 
-    mlflow.register_model(
+    mv = mlflow.register_model(
         model_uri=model_uri,
         name="RealGuard-FraudDetector"
+    )
+
+    client.set_registered_model_alias(
+        name="RealGuard-FraudDetector",
+        alias="Production",
+        version=mv.version
     )
 
 print("\n")

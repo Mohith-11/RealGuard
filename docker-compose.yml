@@ -13,7 +13,19 @@ services:
     volumes:
       - ./ml/mlruns:/app/ml/mlruns
       - ./ml/mlflow.db:/app/ml/mlflow.db
-
-
-
+    environment:
+      MLFLOW_TRACKING_URI: sqlite:////app/ml/mlflow.db
     restart: unless-stopped
+
+
+  mlflow-ui:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: mlflow-ui
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./ml/mlruns:/app/ml/mlruns
+      - ./ml/mlflow.db:/app/ml/mlflow.db
+    command: mlflow server --backend-store-uri sqlite:///app/ml/mlflow.db --default-artifact-root /app/ml/mlruns --host 0.0.0.0 --port 5000
+    restart: unless-stopped
+
