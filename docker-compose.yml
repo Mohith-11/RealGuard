@@ -1,0 +1,19 @@
+services:
+
+
+  realguard-api:
+
+    build: .
+
+    container_name: realguard-api
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./ml/mlruns:/app/ml/mlruns
+      - ./ml/mlflow.db:/app/ml/mlflow.db
+
+
+
+    restart: unless-stopped
