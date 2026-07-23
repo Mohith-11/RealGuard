@@ -1,7 +1,11 @@
 import os
-import joblib
 import warnings
+import joblib
 import pandas as pd
+import mlflow
+import mlflow.sklearn
+import mlflow.xgboost
+from mlflow import MlflowClient
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
@@ -17,9 +21,16 @@ from sklearn.metrics import (
 
 warnings.filterwarnings("ignore")
 
-# =====================================================
+# ==========================================================
+# MLflow
+# ==========================================================
+
+mlflow.set_experiment("RealGuard Fraud Detection")
+client = MlflowClient()
+
+# ==========================================================
 # Paths
-# =====================================================
+# ==========================================================
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -29,23 +40,30 @@ MODEL_DIR = os.path.join(
     "models"
 )
 
-os.makedirs(MODEL_DIR, exist_ok=True)
+REPORT_DIR = os.path.join(
+    BASE_DIR,
+    "reports",
+    "metrics"
+)
 
-# =====================================================
-# Display Settings
-# =====================================================
+os.makedirs(MODEL_DIR, exist_ok=True)
+os.makedirs(REPORT_DIR, exist_ok=True)
+
+# ==========================================================
+# Display Options
+# ==========================================================
 
 pd.set_option("display.max_columns", None)
 pd.set_option("display.width", 200)
 pd.set_option("display.float_format", "{:.4f}".format)
 
-# =====================================================
+# ==========================================================
 # Load Dataset
-# =====================================================
+# ==========================================================
 
-print("=" * 60)
+print("=" * 70)
 print("Loading Processed Dataset")
-print("=" * 60)
+print("=" * 70)
 
 X_train, y_train = joblib.load(
     os.path.join(MODEL_DIR, "train.pkl")
@@ -55,54 +73,71 @@ X_valid, y_valid = joblib.load(
     os.path.join(MODEL_DIR, "valid.pkl")
 )
 
-print(f"Training Samples   : {X_train.shape}")
-print(f"Validation Samples : {X_valid.shape}")
+print(f"Training Shape   : {X_train.shape}")
+print(f"Validation Shape : {X_valid.shape}")
 
-# =====================================================
-# Class Weight for XGBoost
-# =====================================================
+# ==========================================================
+# Calculate Class Weight
+# ==========================================================
 
-fraud_weight = len(y_train[y_train == 0]) / len(y_train[y_train == 1])
+scale_pos_weight = (
+    len(y_train[y_train == 0])
+    /
+    len(y_train[y_train == 1])
+)
 
-print(f"\nScale Pos Weight : {fraud_weight:.2f}")
+print(f"\nScale Positive Weight : {scale_pos_weight:.2f}")
 
-# =====================================================
+# ==========================================================
 # Models
-# =====================================================
+# ==========================================================
 
 models = {
 
-    "Logistic Regression": LogisticRegression(
-        max_iter=3000,
-        solver="saga",
-        class_weight="balanced",
-        random_state=42,
-        n_jobs=-1
-    ),
+    "Logistic Regression":
 
-    "Random Forest": RandomForestClassifier(
-        n_estimators=300,
-        class_weight="balanced",
-        random_state=42,
-        n_jobs=-1
-    ),
+        LogisticRegression(
 
-    "XGBoost": XGBClassifier(
-        n_estimators=300,
-        max_depth=6,
-        learning_rate=0.1,
-        subsample=0.8,
-        colsample_bytree=0.8,
-        scale_pos_weight=fraud_weight,
-        eval_metric="logloss",
-        random_state=42,
-        n_jobs=-1
-    )
+            max_iter=3000,
+            solver="saga",
+            class_weight="balanced",
+            random_state=42,
+            n_jobs=-1
+
+        ),
+
+    "Random Forest":
+
+        RandomForestClassifier(
+
+            n_estimators=300,
+            class_weight="balanced",
+            random_state=42,
+            n_jobs=-1
+
+        ),
+
+    "XGBoost":
+
+        XGBClassifier(
+
+            n_estimators=300,
+            max_depth=6,
+            learning_rate=0.1,
+            subsample=0.8,
+            colsample_bytree=0.8,
+            scale_pos_weight=scale_pos_weight,
+            eval_metric="logloss",
+            random_state=42,
+            n_jobs=-1
+
+        )
+
 }
 
-# =====================================================
+# ==========================================================
 # Train Models
-# =====================================================
+# ==========================================================
 
 results = []
 
@@ -111,65 +146,209 @@ best_name = None
 best_f1 = -1
 
 print("\n")
-print("=" * 60)
+print("=" * 70)
 print("Training Models")
-print("=" * 60)
+print("=" * 70)
 
 for name, model in models.items():
 
     print(f"\nTraining {name}...")
 
-    model.fit(X_train, y_train)
+    with mlflow.start_run(run_name=name):
 
-    predictions = model.predict(X_valid)
+        # ===========================================
+        # Train
+        # ===========================================
 
-    probabilities = model.predict_proba(X_valid)[:, 1]
+        model.fit(
+            X_train,
+            y_train
+        )
 
-    precision = precision_score(y_valid, predictions)
+        predictions = model.predict(
+            X_valid
+        )
 
-    recall = recall_score(y_valid, predictions)
+        probabilities = model.predict_proba(
+            X_valid
+        )[:, 1]
 
-    f1 = f1_score(y_valid, predictions)
+        # ===========================================
+        # Metrics
+        # ===========================================
 
-    roc_auc = roc_auc_score(y_valid, probabilities)
+        precision = precision_score(
+            y_valid,
+            predictions
+        )
 
-    pr_auc = average_precision_score(y_valid, probabilities)
+        recall = recall_score(
+            y_valid,
+            predictions
+        )
 
-    results.append({
+        f1 = f1_score(
+            y_valid,
+            predictions
+        )
 
-        "Model": name,
+        roc_auc = roc_auc_score(
+            y_valid,
+            probabilities
+        )
 
-        "Precision": precision,
+        pr_auc = average_precision_score(
+            y_valid,
+            probabilities
+        )
 
-        "Recall": recall,
+        # ===========================================
+        # Parameters
+        # ===========================================
 
-        "F1 Score": f1,
+        mlflow.log_param(
+            "model_name",
+            name
+        )
 
-        "ROC-AUC": roc_auc,
+        if name == "Logistic Regression":
 
-        "PR-AUC": pr_auc
+            mlflow.log_param(
+                "max_iter",
+                3000
+            )
 
-    })
+        elif name == "Random Forest":
 
-    # Save every model
-    filename = name.replace(" ", "_") + ".pkl"
+            mlflow.log_param(
+                "n_estimators",
+                300
+            )
 
-    joblib.dump(
-        model,
-        os.path.join(MODEL_DIR, filename)
-    )
+            mlflow.log_param(
+                "class_weight",
+                "balanced"
+            )
 
-    print(f"Saved {filename}")
+        elif name == "XGBoost":
 
-    if f1 > best_f1:
+            mlflow.log_param(
+                "n_estimators",
+                300
+            )
 
-        best_f1 = f1
-        best_model = model
-        best_name = name
+            mlflow.log_param(
+                "max_depth",
+                6
+            )
 
-# =====================================================
+            mlflow.log_param(
+                "learning_rate",
+                0.1
+            )
+
+            mlflow.log_param(
+                "subsample",
+                0.8
+            )
+
+            mlflow.log_param(
+                "colsample_bytree",
+                0.8
+            )
+
+        # ===========================================
+        # Log Metrics
+        # ===========================================
+
+        mlflow.log_metric(
+            "Precision",
+            precision
+        )
+
+        mlflow.log_metric(
+            "Recall",
+            recall
+        )
+
+        mlflow.log_metric(
+            "F1 Score",
+            f1
+        )
+
+        mlflow.log_metric(
+            "ROC AUC",
+            roc_auc
+        )
+
+        mlflow.log_metric(
+            "PR AUC",
+            pr_auc
+        )
+
+        # ===========================================
+        # Save Model to MLflow
+        # ===========================================
+
+        if name == "XGBoost":
+            mlflow.xgboost.log_model(
+                xgb_model=model,
+                name="model"
+            )
+        else:
+            mlflow.sklearn.log_model(
+                sk_model=model,
+                name="model"
+            )
+
+        # ===========================================
+        # Save Local Model
+        # ===========================================
+
+        filename = (
+            name.replace(" ", "_")
+            + ".pkl"
+        )
+
+        joblib.dump(
+            model,
+            os.path.join(
+                MODEL_DIR,
+                filename
+            )
+        )
+
+        print(f"Saved {filename}")
+
+        # ===========================================
+        # Store Results
+        # ===========================================
+
+        results.append({
+
+            "Model": name,
+
+            "Precision": precision,
+
+            "Recall": recall,
+
+            "F1 Score": f1,
+
+            "ROC-AUC": roc_auc,
+
+            "PR-AUC": pr_auc
+
+        })
+
+        if f1 > best_f1:
+
+            best_f1 = f1
+            best_model = model
+            best_name = name
+
+# ==========================================================
 # Results Table
-# =====================================================
+# ==========================================================
 
 results_df = pd.DataFrame(results)
 
@@ -179,29 +358,30 @@ results_df = results_df.sort_values(
 )
 
 print("\n")
-print("=" * 60)
+print("=" * 70)
 print("Model Comparison")
-print("=" * 60)
+print("=" * 70)
 
 print(results_df)
 
-# =====================================================
+# ==========================================================
 # Save Metrics
-# =====================================================
+# ==========================================================
 
 results_df.to_csv(
+
     os.path.join(
-        MODEL_DIR,
+        REPORT_DIR,
         "model_results.csv"
     ),
+
     index=False
+
 )
 
-print("\nModel results saved.")
-
-# =====================================================
+# ==========================================================
 # Save Best Model
-# =====================================================
+# ==========================================================
 
 joblib.dump(
 
@@ -214,12 +394,50 @@ joblib.dump(
 
 )
 
+# ==========================================================
+# Log Best Model Information
+# ==========================================================
+
+with mlflow.start_run(run_name="Best Model Summary") as run:
+
+    mlflow.log_param(
+        "Best Model",
+        best_name
+    )
+
+    mlflow.log_metric(
+        "Best F1",
+        best_f1
+    )
+
+    if best_name == "XGBoost":
+
+        model_info = mlflow.xgboost.log_model(
+            xgb_model=best_model,
+            name="best_model"
+        )
+
+    else:
+
+        model_info = mlflow.sklearn.log_model(
+            sk_model=best_model,
+            name="best_model"
+        )
+
+    model_uri = model_info.model_uri
+
+    mlflow.register_model(
+        model_uri=model_uri,
+        name="RealGuard-FraudDetector"
+    )
+
 print("\n")
-print("=" * 60)
+print("=" * 70)
 print(f"Best Model : {best_name}")
 print(f"Best F1    : {best_f1:.4f}")
-print("=" * 60)
+print("=" * 70)
 
-print("\nBest model saved successfully!")
-
-print("\nTraining Completed Successfully!")
+print("\nAll models saved successfully.")
+print("Metrics saved successfully.")
+print("MLflow logs created successfully.")
+print("Training Completed Successfully!")

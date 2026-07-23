@@ -23,3 +23,8 @@ Thumbs.db
 # Data and models (if you want to ignore large datasets/model weights)
 data/
 models/
+
+# MLflow and Databases
+mlruns/
+ml/mlruns/
+*.db
