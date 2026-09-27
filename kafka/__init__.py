@@ -1,1 +1,0 @@
-# RealGuard Kafka Streaming package

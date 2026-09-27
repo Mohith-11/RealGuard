@@ -1,0 +1,8 @@
+{
+  "timestamp": "20260927_083652",
+  "report_file": "drift_report_20260927_083652.html",
+  "dataset_drift_detected": false,
+  "number_of_features": 30,
+  "number_of_drifted_features": 0,
+  "drift_share": 0.0
+}
