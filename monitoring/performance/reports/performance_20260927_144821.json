@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-09-27T09:18:20.992411+00:00",
+  "samples": 1000,
+  "fraud_samples": 0,
+  "legitimate_samples": 1000,
+  "accuracy": 1.0,
+  "precision": 0.0,
+  "recall": 0.0,
+  "f1_score": 0.0,
+  "confusion_matrix": [
+    [
+      1000,
+      0
+    ],
+    [
+      0,
+      0
+    ]
+  ],
+  "pr_auc": null
+}

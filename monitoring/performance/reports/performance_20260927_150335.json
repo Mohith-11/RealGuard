@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-09-27T09:33:35.483006+00:00",
+  "window_start": "2026-09-27T09:25:05.074252",
+  "batch_size_limit": 1000,
+  "min_fraud_threshold": 5,
+  "samples": 1000,
+  "fraud_samples": 1,
+  "legitimate_samples": 999,
+  "fraud_rate": 0.001,
+  "metrics_reliable": false,
+  "accuracy": 1.0,
+  "confusion_matrix": [
+    [
+      999,
+      0
+    ],
+    [
+      0,
+      1
+    ]
+  ],
+  "precision": null,
+  "recall": null,
+  "f1_score": null,
+  "pr_auc": null
+}

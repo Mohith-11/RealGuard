@@ -1,0 +1,114 @@
+{
+  "timestamp": "2026-09-27T09:46:20.291424+00:00",
+  "status": "REJECTED",
+  "registered": false,
+  "training_samples": 205218,
+  "fraud_samples": 345,
+  "legit_samples": 204873,
+  "validation_samples": 42559,
+  "features": [
+    "Time",
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V5",
+    "V6",
+    "V7",
+    "V8",
+    "V9",
+    "V10",
+    "V11",
+    "V12",
+    "V13",
+    "V14",
+    "V15",
+    "V16",
+    "V17",
+    "V18",
+    "V19",
+    "V20",
+    "V21",
+    "V22",
+    "V23",
+    "V24",
+    "V25",
+    "V26",
+    "V27",
+    "V28",
+    "Amount"
+  ],
+  "hyperparameters": {
+    "n_estimators": 300,
+    "max_depth": 6,
+    "learning_rate": 0.1,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "eval_metric": "logloss",
+    "random_state": 42,
+    "n_jobs": -1,
+    "scale_pos_weight": 593.8347826086956
+  },
+  "production_version": "2",
+  "candidate_metrics": {
+    "accuracy": 0.9996,
+    "precision": 0.9649,
+    "recall": 0.7746,
+    "f1": 0.8594,
+    "pr_auc": 0.8606,
+    "confusion_matrix": [
+      [
+        42486,
+        2
+      ],
+      [
+        16,
+        55
+      ]
+    ]
+  },
+  "production_metrics": {
+    "accuracy": 0.9996,
+    "precision": 0.9483,
+    "recall": 0.7746,
+    "f1": 0.8527,
+    "pr_auc": 0.844,
+    "confusion_matrix": [
+      [
+        42485,
+        3
+      ],
+      [
+        16,
+        55
+      ]
+    ]
+  },
+  "validation": {
+    "passed": false,
+    "checks": {
+      "recall_minimum": {
+        "passed": false,
+        "candidate": 0.7746,
+        "threshold": 0.8
+      },
+      "recall_non_degradation": {
+        "passed": true,
+        "candidate": 0.7746,
+        "production": 0.7746,
+        "max_drop": 0.02
+      },
+      "precision_non_degradation": {
+        "passed": true,
+        "candidate": 0.9649,
+        "production": 0.9483,
+        "max_drop": 0.02
+      },
+      "pr_auc_minimum": {
+        "passed": true,
+        "candidate": 0.8606,
+        "threshold": 0.7
+      }
+    }
+  }
+}

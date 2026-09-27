@@ -28,3 +28,6 @@ models/
 mlruns/
 ml/mlruns/
 *.db
+
+monitoring/performance/reports/*.json
+monitoring/retraining/reports/*.json
