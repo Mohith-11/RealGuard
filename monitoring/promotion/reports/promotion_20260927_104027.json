@@ -1,0 +1,11 @@
+{
+  "model_name": "RealGuard-FraudDetector",
+  "candidate_version": "4",
+  "started_at": "2026-09-27T10:38:15.465791+00:00",
+  "status": "rolled_back",
+  "previous_version": "2",
+  "rollback_version": "2",
+  "smoke_test": null,
+  "error": "API did not become healthy within 120s after promotion.",
+  "finished_at": "2026-09-27T10:40:27.179602+00:00"
+}

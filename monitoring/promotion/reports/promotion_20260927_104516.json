@@ -1,0 +1,39 @@
+{
+  "model_name": "RealGuard-FraudDetector",
+  "candidate_version": "4",
+  "started_at": "2026-09-27T10:45:07.698555+00:00",
+  "status": "promoted",
+  "previous_version": "2",
+  "rollback_version": null,
+  "smoke_test": [
+    {
+      "test": "health",
+      "passed": true,
+      "detail": "{'status': 'healthy'}"
+    },
+    {
+      "test": "model_version",
+      "passed": true,
+      "detail": "{'model_name': 'RealGuard-FraudDetector', 'model_alias': 'Production', 'model_version': '4', 'status': 'loaded'}"
+    },
+    {
+      "test": "prediction",
+      "passed": true,
+      "detail": {
+        "prediction": 0,
+        "label": "Legitimate",
+        "fraud_probability": 1.2e-05,
+        "model": "RealGuard-FraudDetector",
+        "version": "4",
+        "timestamp": "2026-09-27T10:45:16.976124Z"
+      }
+    },
+    {
+      "test": "invalid_request",
+      "passed": true,
+      "detail": "HTTP 422"
+    }
+  ],
+  "error": null,
+  "finished_at": "2026-09-27T10:45:16.985461+00:00"
+}

@@ -11,10 +11,17 @@
       - "8000:8000"
 
     volumes:
+      - ./app:/app/app
       - ./ml/mlruns:/app/ml/mlruns
-      - ./ml/mlflow.db:/app/ml/mlflow.db
     environment:
-      MLFLOW_TRACKING_URI: http://mlflow-ui:5000
+      MLFLOW_TRACKING_URI: http://172.18.0.3:5000
+      POSTGRES_HOST: realguard-db
+      POSTGRES_DB: frauddb
+      POSTGRES_USER: realguard
+      POSTGRES_PASSWORD: realguard
+    depends_on:
+      - mlflow-ui
+      - postgres
     restart: unless-stopped
 
 
@@ -103,6 +110,9 @@
 volumes:
   postgres_data:
   grafana-storage:
+
+
+
 
 
 

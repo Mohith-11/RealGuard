@@ -1,0 +1,10 @@
+﻿# API runtime only - pinned to match local venv exactly for compatibility
+fastapi==0.139.2
+uvicorn[standard]==0.51.0
+mlflow==3.14.0
+xgboost==3.2.0
+scikit-learn==1.7.2
+pandas==2.3.3
+numpy==2.2.6
+psycopg2-binary==2.9.12
+prometheus-client==0.22.1
