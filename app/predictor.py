@@ -1,4 +1,4 @@
-﻿"""
+"""
 app/predictor.py - Model loading and inference.
 
 Loads the Production-aliased model at startup.
@@ -21,7 +21,9 @@ FEATURE_COLUMNS = ["Time"] + [f"V{i}" for i in range(1, 29)] + ["Amount"]
 # Model loading
 # ---------------------------------------------------------------------------
 # mlruns base: inside the container it is /app/ml/mlruns (mounted from host)
-MLRUNS_BASE = os.getenv("MLRUNS_BASE", "/app/ml/mlruns")
+_APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_DEFAULT_MLRUNS = os.path.join(_APP_ROOT, "ml", "mlruns")
+MLRUNS_BASE = os.getenv("MLRUNS_BASE", _DEFAULT_MLRUNS)
 
 client = MlflowClient()
 
